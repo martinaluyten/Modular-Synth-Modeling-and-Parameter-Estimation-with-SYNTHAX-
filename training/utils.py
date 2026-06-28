@@ -144,7 +144,12 @@ def save_checkpoint(model, optimizer, epoch, train_loss, val_loss,
 
 def load_checkpoint(filepath, model, optimizer=None, device='cpu'):
     """
-    Load training checkpoint.
+    Load training checkpoint, handling wrapper prefix mismatches.
+    
+    Handles cases where:
+    - Checkpoint was saved with nn.DataParallel (module. prefix)
+    - Model is wrapped with torch.compile (_orig_mod. prefix)
+    - Or any combination of wrappers
     
     Args:
         filepath: Path to checkpoint file
@@ -156,11 +161,93 @@ def load_checkpoint(filepath, model, optimizer=None, device='cpu'):
         dict: Checkpoint data (epoch, losses, stats, selected_params)
     """
     checkpoint = torch.load(filepath, map_location=device)
+    checkpoint_state = checkpoint['model_state_dict']
     
-    model.load_state_dict(checkpoint['model_state_dict'])
+    # Get model's state dict to understand its expected key format
+    model_state_before = model.state_dict()
+    checkpoint_keys = set(checkpoint_state.keys())
+    model_keys = set(model_state_before.keys())
+    
+    print(f"[Load Checkpoint] Checkpoint has {len(checkpoint_keys)} keys")
+    print(f"[Load Checkpoint] Model expects {len(model_keys)} keys")
+    if checkpoint_keys:
+        print(f"[Load Checkpoint] First checkpoint key: {list(checkpoint_keys)[0]}")
+    if model_keys:
+        print(f"[Load Checkpoint] First model key: {list(model_keys)[0]}")
+    
+    # Detect key prefix patterns
+    def has_prefix(keys, prefix):
+        return any(k.startswith(prefix) for k in keys)
+    
+    checkpoint_has_module = has_prefix(checkpoint_keys, 'module.')
+    checkpoint_has_orig_mod = has_prefix(checkpoint_keys, '_orig_mod.')
+    model_has_module = has_prefix(model_keys, 'module.')
+    model_has_orig_mod = has_prefix(model_keys, '_orig_mod.')
+    
+    print(f"[Load Checkpoint] Checkpoint: module.={checkpoint_has_module}, _orig_mod.={checkpoint_has_orig_mod}")
+    print(f"[Load Checkpoint] Model: module.={model_has_module}, _orig_mod.={model_has_orig_mod}")
+    
+    # Convert checkpoint keys to match model's expected format
+    if checkpoint_has_module and not model_has_module and not model_has_orig_mod:
+        # Simple case: just strip 'module.' prefix
+        print("[Load Checkpoint] Converting: removing 'module.' prefix")
+        new_checkpoint_state = {}
+        for k, v in checkpoint_state.items():
+            new_k = k.replace('module.', '', 1) if k.startswith('module.') else k
+            new_checkpoint_state[new_k] = v
+        checkpoint_state = new_checkpoint_state
+    
+    elif checkpoint_has_module and model_has_orig_mod:
+        # Convert 'module.' to '_orig_mod.'
+        print("[Load Checkpoint] Converting: 'module.' -> '_orig_mod.'")
+        new_checkpoint_state = {}
+        for k, v in checkpoint_state.items():
+            new_k = k.replace('module.', '_orig_mod.', 1) if k.startswith('module.') else ('_orig_mod.' + k if not k.startswith('_orig_mod.') else k)
+            new_checkpoint_state[new_k] = v
+        checkpoint_state = new_checkpoint_state
+    
+    elif not checkpoint_has_module and not checkpoint_has_orig_mod and model_has_orig_mod:
+        # Add '_orig_mod.' prefix
+        print("[Load Checkpoint] Converting: adding '_orig_mod.' prefix")
+        new_checkpoint_state = {}
+        for k, v in checkpoint_state.items():
+            new_k = '_orig_mod.' + k if not k.startswith('_orig_mod.') else k
+            new_checkpoint_state[new_k] = v
+        checkpoint_state = new_checkpoint_state
+    
+    # Try to load the checkpoint
+    try:
+        result = model.load_state_dict(checkpoint_state, strict=False)
+        
+        # Report what was loaded
+        if result.missing_keys:
+            print(f"[Load Checkpoint] ⚠ Missing keys ({len(result.missing_keys)})")
+        if result.unexpected_keys:
+            print(f"[Load Checkpoint] ⚠ Unexpected keys ({len(result.unexpected_keys)})")
+        
+        # Validate that weights actually changed
+        model_state_after = model.state_dict()
+        weights_loaded = False
+        sample_keys = list(checkpoint_state.keys())[:5]
+        for k in sample_keys:
+            if k in model_state_after and k in model_state_before:
+                if not torch.equal(model_state_before[k], model_state_after[k]):
+                    weights_loaded = True
+                    break
+        
+        if weights_loaded:
+            print(f"[Load Checkpoint] ✓ Weights successfully loaded from checkpoint")
+        else:
+            print(f"[Load Checkpoint] ✗ WARNING: Weights may not have loaded correctly!")
+            
+    except Exception as e:
+        raise RuntimeError(f"Failed to load checkpoint: {e}")
     
     if optimizer is not None and 'optimizer_state_dict' in checkpoint:
-        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        try:
+            optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        except Exception as e:
+            print(f"[Load Checkpoint] ⚠ Could not restore optimizer state: {e}")
     
     return {
         'epoch': checkpoint.get('epoch', 0),

@@ -538,6 +538,18 @@ def render_training_control(config):
         loss_chart_placeholder.empty()
         param_chart_placeholder.empty()
         param_table_placeholder.empty()
+
+        # Restore the best checkpoint before evaluation/inference
+        best_checkpoint_path = os.path.join(PATHS['checkpoints'], 'best_model.pt')
+        if os.path.exists(best_checkpoint_path):
+            try:
+                status_text.text("Restoring best model checkpoint for evaluation...")
+                trainer.load_checkpoint(best_checkpoint_path)
+                st.info("✅ Best model restored from checkpoint for post-training evaluation")
+            except Exception as e:
+                st.warning(f"Could not restore best checkpoint after training: {e}")
+        else:
+            st.warning("No best model checkpoint found; using final epoch model for evaluation.")
         
         # Auto-evaluate on test set
         st.info("Evaluating on test set...")
@@ -631,7 +643,8 @@ def render_training_control(config):
                     
                     scheduler_type = 'cosine' if 'Cosine' in config['scheduler_choice'] else 'plateau'
                     
-                    # 4. Initialize Trainer (bridges the dataloaders, model, and metrics)
+                    # 4. Initialize Trainer WITHOUT compiling yet (compile_model=False)
+                    # We need to load checkpoint before compiling to avoid key structure mismatches
                     trainer = create_trainer(
                         model=model,
                         dataloaders=dataloaders,
@@ -644,17 +657,22 @@ def render_training_control(config):
                         patience=config['patience'],
                         use_amp=TRAINING_CONFIG.get('use_amp', True),
                         use_bfloat16=TRAINING_CONFIG.get('use_bfloat16', True),
-                        compile_model=TRAINING_CONFIG.get('compile_model', True),
+                        compile_model=False,
                         val_every_n_epochs=TRAINING_CONFIG.get('val_every_n_epochs', 2),
                         use_tf32=TRAINING_CONFIG.get('use_tf32', True),
                         accumulation_steps=TRAINING_CONFIG.get('accumulation_steps', 1),
                         scheduler_type=scheduler_type
                     )
 
-                    # 5. Load the Weights
+                    # 5. Load the Weights from checkpoint (before compiling)
                     trainer.load_checkpoint(checkpoint_path)
                     
-                    # 6. Load Training History Graph (if available)
+                    # 6. Skip compilation for inference (inference doesn't need it, only slows down loading)
+                    # Compilation is only applied during training (in create_trainer)
+                    # For inference, model runs in eval mode without compilation overhead
+                    print("[App] Skipping torch.compile() for inference - keeping model loading fast")
+                    
+                    # 7. Load Training History Graph (if available)
                     history_path = os.path.join(PATHS['checkpoints'], 'training_history.json')
                     history = None
                     if os.path.exists(history_path):
@@ -670,7 +688,7 @@ def render_training_control(config):
                             else:
                                 history[key] = values
                     
-                    # 7. Update Streamlit Session State
+                    # 8. Update Streamlit Session State
                     st.session_state.dataloaders = dataloaders
                     st.session_state.model = model
                     st.session_state.trainer = trainer
@@ -679,7 +697,7 @@ def render_training_control(config):
                     
                     st.success(f"✅ Successfully loaded model from Epoch {trainer.current_epoch}")
                     
-                    # 8. Auto-Evaluate to populate the "Results" tab
+                    # 9. Auto-Evaluate to populate the "Results" tab
                     with st.spinner("Running test set evaluation..."):
                         eval_results = trainer.evaluate('test')
                         st.session_state.evaluation_results = eval_results
