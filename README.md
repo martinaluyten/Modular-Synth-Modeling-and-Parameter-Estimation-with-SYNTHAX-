@@ -17,7 +17,6 @@ A deep learning system for modeling synthesizer parameters from audio spectrogra
 - **`config.py`** — Central configuration file with dataset paths, hyperparameters, device settings, and parameter definitions
 - **`run.py`** — Main entry point for training and inference
 - **`inference_utils.py`** — Model inference utilities and audio synthesis pipeline for parameter prediction and waveform generation
-- **`README.md`** — CNN-specific documentation
 
 #### Submodules
 
