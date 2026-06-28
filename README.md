@@ -101,4 +101,5 @@ The CNN predicts 11 synthesizer parameters defined in `config.py`:
 - Amplitude/envelope controls
 - Filter characteristics
 - Modulation parameters
-- And more...
+
+And more...
