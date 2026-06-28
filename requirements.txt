@@ -19,6 +19,7 @@ soundfile>=0.12.0
 jax>=0.4.20
 jaxlib>=0.4.20
 synthax
+scikit-learn>=1.3.0
 
 # UI
 streamlit>=1.28.0
