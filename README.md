@@ -92,6 +92,7 @@ audio = predict_and_synthesize(spectrogram_input)
 - Python 3.10+
 - PyTorch 2.0.0+
 - CUDA-capable GPU (optional, CPU supported)
+
 See `requirements.txt` for full dependencies.
 
 ## Model Output
