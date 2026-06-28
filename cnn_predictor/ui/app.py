@@ -11,8 +11,6 @@ import json
 from PIL import Image
 import io
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "0,6"  # Use 2 free L4 GPUs for 2x speedup
-
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
