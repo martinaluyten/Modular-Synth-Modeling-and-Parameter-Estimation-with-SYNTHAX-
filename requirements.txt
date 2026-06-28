@@ -1,15 +1,27 @@
+# Deep Learning & ML
 torch>=2.0.0
 torchvision>=0.15.0
-pandas>=2.0.0
 numpy>=1.24.0
+
+# Data Processing
+pandas>=2.0.0
 Pillow>=10.0.0
-streamlit>=1.28.0
+
+# Visualization
 plotly>=5.18.0
 matplotlib>=3.7.0
+
+# Audio Processing
 librosa>=0.10.0
 soundfile>=0.12.0
+
+# JAX & SynthAX (for audio synthesis)
 jax>=0.4.20
 jaxlib>=0.4.20
 synthax
-scikit-learn>=1.3.0
-tqdm>=4.65.0
+
+# UI
+streamlit>=1.28.0
+
+# Utilities
+tqdm>=4.66.0
