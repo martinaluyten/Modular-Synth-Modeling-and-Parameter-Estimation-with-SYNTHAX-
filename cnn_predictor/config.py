@@ -73,7 +73,7 @@ TRAINING_CONFIG = {
     'gradient_clip': 1.0,
     'use_amp': True,  
     'use_bfloat16': True,        # The L4 GPU natively supports bfloat16
-    'compile_model': True,  
+    'compile_model': False,  
     'val_every_n_epochs': 3,
     'use_tf32': True,            # TF32 precision for 2x speedup on Ada/Ampere
     'accumulation_steps': 4,     # 2 GPUs: effective batch = 256 * 4 * 2 = 2048

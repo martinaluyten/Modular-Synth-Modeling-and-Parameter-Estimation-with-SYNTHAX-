@@ -20,3 +20,4 @@ env/
 htmlcov/
 node_modules/
 *.log
+checkpoints_backup_*/

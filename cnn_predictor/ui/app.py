@@ -677,12 +677,12 @@ def render_training_control(config):
                         with open(history_path, 'r') as f:
                             full_history = json.load(f)
                         # Downsample history to avoid websocket buffer overflow
-                        # Keep first 10 epochs, then sample every 5th epoch
+                        # Keep first 20 epochs, then sample every 2nd epoch
                         history = {}
                         for key, values in full_history.items():
-                            if isinstance(values, list) and len(values) > 50:
-                                # Keep first 10, then every 5th
-                                history[key] = values[:10] + values[10::5]
+                            if isinstance(values, list) and len(values) > 100:
+                                # Keep first 20, then every 2nd
+                                history[key] = values[:20] + values[20::2]
                             else:
                                 history[key] = values
                     
