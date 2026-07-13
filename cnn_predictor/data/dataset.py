@@ -113,6 +113,10 @@ def create_dataloaders(metadata_csv, dataset_dir, selected_params=None,
     assert abs(train_ratio + val_ratio + test_ratio - 1.0) < 1e-6, \
         "Split ratios must sum to 1.0"
 
+    # Detect Streamlit Cloud environment (limited shared memory)
+    if os.environ.get('STREAMLIT_SERVER_HEADLESS') or os.path.exists('/.dockerenv'):
+        num_workers = 0  # Disable workers to avoid shared memory issues
+
     # Load metadata
     df = pd.read_csv(metadata_csv)
 
