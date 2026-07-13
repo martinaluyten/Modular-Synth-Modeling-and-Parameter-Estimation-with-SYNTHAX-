@@ -13,8 +13,8 @@ matplotlib>=3.7.0
 
 # removed for streamlit to work, only needed for audio processing
 # Audio Processing
-# librosa>=0.10.0
-# soundfile>=0.12.0
+librosa>=0.10.0
+soundfile>=0.12.0
 
 # JAX & SynthAX (for audio synthesis)
 jax>=0.4.20
