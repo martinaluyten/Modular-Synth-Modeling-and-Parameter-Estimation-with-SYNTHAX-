@@ -1,7 +1,7 @@
 {
-  "epoch": 192,
-  "train_loss": 0.013749320780600075,
-  "val_loss": 0.006487317165980736,
+  "epoch": 459,
+  "train_loss": 0.012673206158308652,
+  "val_loss": 0.005265358866502841,
   "selected_params": [
     "midi_f0",
     "cutoff",
