@@ -2,8 +2,8 @@ import io
 import math
 import numpy as np
 from PIL import Image
-import librosa
-import soundfile as sf
+# import librosa ## Only used in waveform_to_spectrogram_image, not called by app
+# import soundfile as sf # Only used in waveform_to_wav_bytes, not called by app
 import jax
 import jax.numpy as jnp
 from synthax.config import SynthConfig
