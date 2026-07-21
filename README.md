@@ -103,6 +103,11 @@ The CNN predicts 11 synthesizer parameters defined in `config.py`:
 
 And more...
 
-## Application:
-https://invertsynth.netlify.app
-Code available at: 
+## Application: Invert Synth
+
+**[▶ Try it live](https://invertsynth.netlify.app)** · **[Source code](https://github.com/martinaluyten/Invert-Synth)**
+
+A browser-based synthesizer that uses this project's trained CNN as a *preset maker*.
+Drop in an audio file or spectrogram image, and the model estimates the SYNTHAX
+parameters that would produce that sound. The synth snaps to them, and you can play
+the reconstructed patch polyphonically on your computer keyboard.
