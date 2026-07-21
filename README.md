@@ -102,3 +102,7 @@ The CNN predicts 11 synthesizer parameters defined in `config.py`:
 - Modulation parameters
 
 And more...
+
+## Application:
+https://invertsynth.netlify.app
+Code available at: 
