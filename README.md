@@ -1,6 +1,6 @@
 # Modular Synth Modeling and Parameter Estimation with SYNTHAX
 
-A deep learning system for modeling synthesizer parameters from audio spectrograms using PyTorch and the SYNTHAX audio synthesis framework.
+A deep learning system for modeling synthesizer parameters from audio spectrograms using PyTorch and the SYNTHAX audio synthesis framework. The report can be found above in the files.
 
 ## Project Structure
 
